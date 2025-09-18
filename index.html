@@ -3,56 +3,65 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Countdown</title>
+  <title>Halloween Countdown</title>
   <style>
-    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
-    .wrap{display:flex;align-items:center;justify-content:center;height:100%;background:#0b1020;color:#fff;flex-direction:column;text-align:center;padding:20px}
-    h1{font-size:clamp(18px,4vw,28px);margin:0 0 18px}
-    .timer{font-weight:700;font-size:clamp(28px,8vw,88px);letter-spacing:.02em}
-    .small{font-size:14px;opacity:.8;margin-top:12px}
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Creepster", cursive, system-ui, sans-serif;
+      background: linear-gradient(to bottom, #000000, #1a0d0d);
+      color: #ff7518;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      font-size: clamp(24px, 5vw, 48px);
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #ff7518, 0 0 20px #ff4500;
+    }
+    #days {
+      font-size: clamp(40px, 12vw, 140px);
+      font-weight: bold;
+      text-shadow: 0 0 15px #ff7518, 0 0 30px #ff4500, 0 0 45px #ff0000;
+    }
+    p {
+      margin-top: 20px;
+      font-size: clamp(16px, 4vw, 28px);
+      color: #ffa94d;
+    }
   </style>
+  <!-- Google spooky font -->
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="wrap">
-    <h1>Event starts in</h1>
-    <div id="timer" class="timer">--:--:--:--</div>
-    <div id="label" class="small">days : hours : minutes : seconds</div>
-  </div>
+  <h1>🎃 Countdown to Halloween 🎃</h1>
+  <div id="days">--</div>
+  <p>days left</p>
 
   <script>
-    // === EDIT THIS: set the target date/time (YYYY-MM-DDTHH:MM:SS) in your local zone or with Z for UTC
-    const TARGET = "2025-10-01T15:00:00"; // ← change this
+    function updateCountdown() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const halloween = new Date(`${currentYear}-10-31T00:00:00`);
 
-    const targetTime = new Date(TARGET).getTime();
-    const timer = document.getElementById("timer");
-    const label = document.getElementById("label");
-
-    if (isNaN(targetTime)) {
-      timer.textContent = "Invalid target date. Edit TARGET inside the file.";
-    } else {
-      function update(){
-        const now = Date.now();
-        let diff = Math.max(0, targetTime - now);
-
-        const s = Math.floor(diff / 1000);
-        const days = Math.floor(s / 86400);
-        const hours = Math.floor((s % 86400) / 3600);
-        const minutes = Math.floor((s % 3600) / 60);
-        const seconds = s % 60;
-
-        function pad(n){ return String(n).padStart(2,'0'); }
-        timer.textContent = `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-
-        if (diff === 0) {
-          label.textContent = "The countdown finished.";
-          // optionally redirect when zero:
-          // window.location.href = "https://example.com";
-          clearInterval(iv);
-        }
+      // If Halloween already passed this year, countdown to next year
+      if (now > halloween) {
+        halloween.setFullYear(currentYear + 1);
       }
-      update();
-      const iv = setInterval(update, 1000);
+
+      const oneDay = 1000 * 60 * 60 * 24;
+      const diff = Math.ceil((halloween - now) / oneDay);
+
+      document.getElementById("days").textContent = diff;
     }
+
+    updateCountdown();
+    // update every midnight just in case someone leaves it open
+    setInterval(updateCountdown, 1000 * 60 * 60);
   </script>
 </body>
 </html>
+
