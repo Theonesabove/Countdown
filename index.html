@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Halloween Countdown</title>
+  <title>Countdown to Spooktober</title>
   <style>
     html, body {
       margin: 0;
@@ -32,36 +32,75 @@
       font-size: clamp(16px, 4vw, 28px);
       color: #ffa94d;
     }
+    #videoWrapper {
+      margin-top: 30px;
+      display: none;
+    }
+    iframe {
+      width: 320px;
+      height: 180px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #ff4500;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ff4500;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-shadow: 1px 1px 2px #000;
+    }
+    button:hover {
+      background-color: #ff7518;
+    }
   </style>
-  <!-- Google spooky font -->
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>🎃 Countdown to Halloween 🎃</h1>
+  <h1>👻 Countdown to Spooktober 👻</h1>
   <div id="days">--</div>
-  <p>days left</p>
+  <p id="label">days left</p>
+
+  <div id="videoWrapper">
+    <h1>🎃 Spooktober is here! 🎃</h1>
+    <iframe id="spookyVideo"
+      src="https://www.youtube.com/embed/sVjk5nrb_lI?autoplay=1&mute=1&loop=1&playlist=sVjk5nrb_lI"
+      allow="autoplay; encrypted-media"
+      allowfullscreen></iframe>
+    <p><button onclick="unmuteVideo()">🔊 Play Music</button></p>
+  </div>
 
   <script>
     function updateCountdown() {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const halloween = new Date(`${currentYear}-10-31T00:00:00`);
+      const spooktober = new Date(`${currentYear}-10-01T00:00:00`);
 
-      // If Halloween already passed this year, countdown to next year
-      if (now > halloween) {
-        halloween.setFullYear(currentYear + 1);
+      // If Oct 1st has come or passed this year
+      if (now >= spooktober) {
+        document.getElementById("days").style.display = "none";
+        document.getElementById("label").style.display = "none";
+        document.getElementById("videoWrapper").style.display = "block";
+        return;
       }
 
       const oneDay = 1000 * 60 * 60 * 24;
-      const diff = Math.ceil((halloween - now) / oneDay);
-
+      const diff = Math.ceil((spooktober - now) / oneDay);
       document.getElementById("days").textContent = diff;
     }
 
+    function unmuteVideo() {
+      const iframe = document.getElementById("spookyVideo");
+      // simply replace mute=1 with mute=0 in the src
+      iframe.src = iframe.src.replace("mute=1", "mute=0");
+    }
+
     updateCountdown();
-    // update every midnight just in case someone leaves it open
-    setInterval(updateCountdown, 1000 * 60 * 60);
+    setInterval(updateCountdown, 1000 * 60 * 60); // update hourly
   </script>
 </body>
 </html>
-
