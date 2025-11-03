@@ -3,34 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Countdown to Spooktober</title>
+  <title>Countdown to Thanksgiving</title>
   <style>
     html, body {
       margin: 0;
       height: 100%;
-      font-family: "Creepster", cursive, system-ui, sans-serif;
-      background: linear-gradient(to bottom, #000000, #1a0d0d);
-      color: #ff7518;
+      font-family: "Lobster", cursive, system-ui, sans-serif;
+      background: linear-gradient(to bottom, #5a2a0c, #b35c1e, #f7c47d);
+      color: #fff3e0;
       text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
     }
     h1 {
       font-size: clamp(24px, 5vw, 48px);
       margin-bottom: 20px;
-      text-shadow: 0 0 10px #ff7518, 0 0 20px #ff4500;
+      text-shadow: 0 0 15px #f7b267, 0 0 30px #e85d04;
     }
     #days {
       font-size: clamp(40px, 12vw, 140px);
       font-weight: bold;
-      text-shadow: 0 0 15px #ff7518, 0 0 30px #ff4500, 0 0 45px #ff0000;
+      text-shadow: 0 0 15px #ffb703, 0 0 30px #fb8500, 0 0 45px #e85d04;
     }
     p {
       margin-top: 20px;
       font-size: clamp(16px, 4vw, 28px);
-      color: #ffa94d;
+      color: #fff1cc;
     }
     #videoWrapper {
       margin-top: 30px;
@@ -41,34 +42,34 @@
       height: 180px;
       border: none;
       border-radius: 12px;
-      box-shadow: 0 0 15px #ff4500;
+      box-shadow: 0 0 15px #e85d04;
     }
     button {
       margin-top: 15px;
       padding: 10px 20px;
       font-size: 18px;
-      background-color: #ff4500;
-      color: #000;
+      background-color: #e85d04;
+      color: #fff;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       text-shadow: 1px 1px 2px #000;
     }
     button:hover {
-      background-color: #ff7518;
+      background-color: #fb8500;
     }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>👻 Countdown to Spooktober 👻</h1>
+  <h1>🦃 Countdown to Thanksgiving 🦃</h1>
   <div id="days">--</div>
   <p id="label">days left</p>
 
   <div id="videoWrapper">
-    <h1>🎃 Spooktober is here! 🎃</h1>
-    <iframe id="spookyVideo"
-      src="https://www.youtube.com/embed/n_qbGJuxCYY?autoplay=1&mute=1&loop=1&playlist=n_qbGJuxCYY"
+    <h1>🍁 Happy Thanksgiving! 🍁</h1>
+    <iframe id="thanksgivingVideo"
+      src="https://www.youtube.com/embed/6KJ6NqYt5FY?autoplay=1&mute=1&loop=1&playlist=6KJ6NqYt5FY"
       allow="autoplay; encrypted-media"
       allowfullscreen></iframe>
     <p><button onclick="unmuteVideo()">🔊 Play Music</button></p>
@@ -78,10 +79,9 @@
     function updateCountdown() {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const spooktober = new Date(`${currentYear}-10-01T00:00:00`);
+      const thanksgiving = new Date(`${currentYear}-11-27T00:00:00`);
 
-      // If Oct 1st has come or passed this year
-      if (now >= spooktober) {
+      if (now >= thanksgiving) {
         document.getElementById("days").style.display = "none";
         document.getElementById("label").style.display = "none";
         document.getElementById("videoWrapper").style.display = "block";
@@ -89,18 +89,17 @@
       }
 
       const oneDay = 1000 * 60 * 60 * 24;
-      const diff = Math.ceil((spooktober - now) / oneDay);
+      const diff = Math.ceil((thanksgiving - now) / oneDay);
       document.getElementById("days").textContent = diff;
     }
 
     function unmuteVideo() {
-      const iframe = document.getElementById("spookyVideo");
-      // simply replace mute=1 with mute=0 in the src
+      const iframe = document.getElementById("thanksgivingVideo");
       iframe.src = iframe.src.replace("mute=1", "mute=0");
     }
 
     updateCountdown();
-    setInterval(updateCountdown, 1000 * 60 * 60); // update hourly
+    setInterval(updateCountdown, 1000 * 60 * 60);
   </script>
 </body>
 </html>
