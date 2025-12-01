@@ -3,103 +3,121 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Countdown to Thanksgiving</title>
+  <title>Christmas Countdown & Advent Calendar</title>
   <style>
     html, body {
       margin: 0;
       height: 100%;
       font-family: "Lobster", cursive, system-ui, sans-serif;
-      background: linear-gradient(to bottom, #5a2a0c, #b35c1e, #f7c47d);
-      color: #fff3e0;
+      background: linear-gradient(to bottom, #0b1d3a, #1d3557, #457b9d);
+      color: #e9f5ff;
       text-align: center;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      overflow: hidden;
+      overflow-y: auto;
+      padding-bottom: 40px;
     }
     h1 {
       font-size: clamp(24px, 5vw, 48px);
-      margin-bottom: 20px;
-      text-shadow: 0 0 15px #f7b267, 0 0 30px #e85d04;
+      margin-top: 30px;
+      text-shadow: 0 0 15px #a8dadc, 0 0 30px #f1faee;
     }
     #days {
       font-size: clamp(40px, 12vw, 140px);
       font-weight: bold;
-      text-shadow: 0 0 15px #ffb703, 0 0 30px #fb8500, 0 0 45px #e85d04;
+      text-shadow: 0 0 20px #f1faee, 0 0 35px #a8dadc;
     }
     p {
-      margin-top: 20px;
+      margin-top: 10px;
       font-size: clamp(16px, 4vw, 28px);
-      color: #fff1cc;
     }
-    #videoWrapper {
+
+    /* Advent Calendar Grid */
+    #adventContainer {
       margin-top: 30px;
-      display: none;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      width: 90%;
+      max-width: 900px;
     }
-    iframe {
-      width: 320px;
-      height: 180px;
-      border: none;
+
+    .advent-day {
+      background: #e63946;
       border-radius: 12px;
-      box-shadow: 0 0 15px #e85d04;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 18px;
-      background-color: #e85d04;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
+      padding: 20px;
+      font-size: 24px;
+      color: white;
       cursor: pointer;
-      text-shadow: 1px 1px 2px #000;
+      box-shadow: 0 0 10px rgba(255,255,255,0.4);
+      transition: transform .2s;
     }
-    button:hover {
-      background-color: #fb8500;
+
+    .advent-day:hover {
+      transform: scale(1.1);
+      background: #d62839;
     }
+
+    .locked {
+      background: #6c757d !important;
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none !important;
+    }
+
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>🦃 Countdown to Thanksgiving 🦃</h1>
+  <h1>🎄 Christmas Countdown 🎄</h1>
   <div id="days">--</div>
   <p id="label">days left</p>
 
-  <div id="videoWrapper">
-    <h1>🍁 Happy Thanksgiving! 🍁</h1>
-    <iframe id="thanksgivingVideo"
-      src="https://www.youtube.com/embed/6KJ6NqYt5FY?autoplay=1&mute=1&loop=1&playlist=6KJ6NqYt5FY"
-      allow="autoplay; encrypted-media"
-      allowfullscreen></iframe>
-    <p><button onclick="unmuteVideo()">🔊 Play Music</button></p>
-  </div>
+  <h1 style="margin-top:40px;">🎁 Advent Calendar 🎁</h1>
+  <div id="adventContainer"></div>
 
   <script>
+    // ---- Christmas Countdown ----
     function updateCountdown() {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const thanksgiving = new Date(`${currentYear}-11-27T00:00:00`);
-
-      if (now >= thanksgiving) {
-        document.getElementById("days").style.display = "none";
-        document.getElementById("label").style.display = "none";
-        document.getElementById("videoWrapper").style.display = "block";
-        return;
-      }
+      const christmas = new Date(`${currentYear}-12-25T00:00:00`);
 
       const oneDay = 1000 * 60 * 60 * 24;
-      const diff = Math.ceil((thanksgiving - now) / oneDay);
-      document.getElementById("days").textContent = diff;
-    }
+      const diff = Math.ceil((christmas - now) / oneDay);
 
-    function unmuteVideo() {
-      const iframe = document.getElementById("thanksgivingVideo");
-      iframe.src = iframe.src.replace("mute=1", "mute=0");
+      document.getElementById("days").textContent = diff >= 0 ? diff : 0;
     }
 
     updateCountdown();
     setInterval(updateCountdown, 1000 * 60 * 60);
+
+    // ---- Advent Calendar ----
+    const adventLinks = [
+      "https://youtu.be/1?", "https://youtu.be/2?", "https://youtu.be/3?", "https://youtu.be/4?", "https://youtu.be/5?",
+      "https://youtu.be/6?", "https://youtu.be/7?", "https://youtu.be/8?", "https://youtu.be/9?", "https://youtu.be/10?",
+      "https://youtu.be/11?", "https://youtu.be/12?", "https://youtu.be/13?", "https://youtu.be/14?", "https://youtu.be/15?",
+      "https://youtu.be/16?", "https://youtu.be/17?", "https://youtu.be/18?", "https://youtu.be/19?", "https://youtu.be/20?",
+      "https://youtu.be/21?", "https://youtu.be/22?", "https://youtu.be/23?", "https://youtu.be/24?"
+    ];
+
+    const container = document.getElementById("adventContainer");
+    const today = new Date().getDate();
+
+    for (let i = 1; i <= 24; i++) {
+      const box = document.createElement("div");
+      box.className = "advent-day";
+      box.textContent = i;
+
+      if (i > today) {
+        box.classList.add("locked");
+      } else {
+        box.onclick = () => window.open(adventLinks[i-1], "_blank");
+      }
+
+      container.appendChild(box);
+    }
   </script>
 </body>
 </html>
