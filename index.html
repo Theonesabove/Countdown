@@ -3,121 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Christmas Countdown & Advent Calendar</title>
+  <title>New Year Countdown – Ball Drop</title>
+
   <style>
     html, body {
       margin: 0;
       height: 100%;
-      font-family: "Lobster", cursive, system-ui, sans-serif;
-      background: linear-gradient(to bottom, #0b1d3a, #1d3557, #457b9d);
+      font-family: system-ui, sans-serif;
+      background: radial-gradient(circle at top, #0b1d3a, #000814);
       color: #e9f5ff;
-      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-y: auto;
-      padding-bottom: 40px;
+      overflow: hidden;
     }
+
     h1 {
+      margin-top: 20px;
       font-size: clamp(24px, 5vw, 48px);
-      margin-top: 30px;
-      text-shadow: 0 0 15px #a8dadc, 0 0 30px #f1faee;
-    }
-    #days {
-      font-size: clamp(40px, 12vw, 140px);
-      font-weight: bold;
-      text-shadow: 0 0 20px #f1faee, 0 0 35px #a8dadc;
-    }
-    p {
-      margin-top: 10px;
-      font-size: clamp(16px, 4vw, 28px);
+      text-shadow: 0 0 15px #ffd166;
     }
 
-    /* Advent Calendar Grid */
-    #adventContainer {
-      margin-top: 30px;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
-      width: 90%;
-      max-width: 900px;
+    #time {
+      font-size: clamp(32px, 8vw, 80px);
+      margin: 10px 0 20px;
+      text-shadow: 0 0 20px #ffd166;
     }
 
-    .advent-day {
-      background: #e63946;
-      border-radius: 12px;
-      padding: 20px;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(255,255,255,0.4);
-      transition: transform .2s;
+    /* Tower */
+    #tower {
+      position: relative;
+      width: 120px;
+      height: 60vh;
+      border-left: 4px solid #495057;
+      border-right: 4px solid #495057;
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
     }
 
-    .advent-day:hover {
-      transform: scale(1.1);
-      background: #d62839;
+    /* Ball */
+    #ball {
+      position: absolute;
+      top: 0;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #ffd166, #fca311);
+      box-shadow:
+        0 0 25px #ffd166,
+        0 0 50px #fca311,
+        0 0 80px #ffd166;
+      transition: top 0.5s linear;
     }
 
-    .locked {
-      background: #6c757d !important;
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none !important;
+    #label {
+      margin-top: 15px;
+      font-size: 18px;
+      opacity: 0.8;
     }
-
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
-<body>
-  <h1>🎄 Christmas Countdown 🎄</h1>
-  <div id="days">--</div>
-  <p id="label">days left</p>
 
-  <h1 style="margin-top:40px;">🎁 Advent Calendar 🎁</h1>
-  <div id="adventContainer"></div>
+<body>
+  <h1>🎆 New Year’s Eve 🎆</h1>
+  <div id="time">--</div>
+  <div id="tower">
+    <div id="ball"></div>
+  </div>
+  <div id="label">until midnight</div>
 
   <script>
-    // ---- Christmas Countdown ----
+    const ball = document.getElementById("ball");
+    const timeEl = document.getElementById("time");
+    const tower = document.getElementById("tower");
+
+    function getNewYear() {
+      const now = new Date();
+      return new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
+    }
+
     function updateCountdown() {
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const christmas = new Date(`${currentYear}-12-25T00:00:00`);
+      const newYear = getNewYear();
 
-      const oneDay = 1000 * 60 * 60 * 24;
-      const diff = Math.ceil((christmas - now) / oneDay);
+      const totalTime = newYear - new Date(newYear.getFullYear() - 1, 11, 31, 0, 0, 0);
+      const remaining = newYear - now;
 
-      document.getElementById("days").textContent = diff >= 0 ? diff : 0;
+      if (remaining <= 0) {
+        timeEl.textContent = "🎉 HAPPY NEW YEAR 🎉";
+        ball.style.top = (tower.clientHeight - ball.clientHeight) + "px";
+        return;
+      }
+
+      // Time display
+      const seconds = Math.floor(remaining / 1000);
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+
+      timeEl.textContent =
+        hrs > 0
+          ? `${hrs}h ${mins}m ${secs}s`
+          : `${mins}m ${secs}s`;
+
+      // Ball drop calculation
+      const progress = 1 - (remaining / totalTime);
+      const maxDrop = tower.clientHeight - ball.clientHeight;
+      ball.style.top = `${progress * maxDrop}px`;
     }
 
     updateCountdown();
-    setInterval(updateCountdown, 1000 * 60 * 60);
-
-    // ---- Advent Calendar ----
-    const adventLinks = [
-      "https://www.youtube.com/watch?v=N8NcQzMQN_U&list=RDN8NcQzMQN_U&start_radio=1", "https://www.youtube.com/watch?v=aAkMkVFwAoo&list=RDaAkMkVFwAoo&start_radio=1", "https://www.youtube.com/watch?v=lanzeMEEgYM&list=RDlanzeMEEgYM&start_radio=1", "https://www.youtube.com/watch?v=CJz1UEyw0MM&list=RDCJz1UEyw0MM&start_radio=1", "https://www.youtube.com/watch?v=UMbq95BloLk&list=RDUMbq95BloLk&start_radio=1",
-      "https://www.youtube.com/watch?v=MgIwLeASnkw&list=RDMgIwLeASnkw&start_radio=1", "https://www.youtube.com/watch?v=RgbFLWG5wOI&list=RDRgbFLWG5wOI&start_radio=1", "https://www.youtube.com/watch?v=VPOBhlX3ads&list=RDVPOBhlX3ads&start_radio=1", "https://www.youtube.com/watch?v=-cUz-zAATNI&list=RD-cUz-zAATNI&start_radio=1", "https://www.youtube.com/watch?v=gset79KMmt0&list=RDgset79KMmt0&start_radio=1",
-      "https://www.youtube.com/watch?v=t039p6xqutU&list=RDt039p6xqutU&start_radio=1", "https://www.youtube.com/watch?v=iRMjEYlK4PU&list=RDiRMjEYlK4PU&start_radio=1", "https://www.youtube.com/watch?v=0TyG_9Ap8bA&list=RD0TyG_9Ap8bA&start_radio=1", "https://www.youtube.com/watch?v=HPdHkHslFIU&list=RDHPdHkHslFIU&start_radio=1", "https://www.youtube.com/watch?v=ZqesZeoiE6I&list=RDZqesZeoiE6I&start_radio=1",
-      "https://www.youtube.com/watch?v=ZlsJD8RlhbI&list=RDZlsJD8RlhbI&start_radio=1", "https://www.youtube.com/watch?v=qyEgVF6JsNE&list=RDqyEgVF6JsNE&start_radio=1", "https://www.youtube.com/watch?v=hunv2Xklr4Q", "https://www.youtube.com/watch?v=X1kaUJN-nNQ&list=RDX1kaUJN-nNQ&start_radio=1", "https://www.youtube.com/watch?v=QJ5DOWPGxwg&list=RDQJ5DOWPGxwg&start_radio=1",
-      "https://www.youtube.com/watch?v=Uz4OOpYWs0A&list=RDUz4OOpYWs0A&start_radio=1", "https://www.youtube.com/watch?v=E8gmARGvPlI&list=RDE8gmARGvPlI&start_radio=1", "https://www.youtube.com/watch?v=4mZTyJvczeI&list=RD4mZTyJvczeI&start_radio=1", "https://www.youtube.com/shorts/56-espM4I9I"
-    ];
-
-    const container = document.getElementById("adventContainer");
-    const today = new Date().getDate();
-
-    for (let i = 1; i <= 24; i++) {
-      const box = document.createElement("div");
-      box.className = "advent-day";
-      box.textContent = i;
-
-      if (i > today) {
-        box.classList.add("locked");
-      } else {
-        box.onclick = () => window.open(adventLinks[i-1], "_blank");
-      }
-
-      container.appendChild(box);
-    }
+    setInterval(updateCountdown, 1000);
   </script>
 </body>
 </html>
