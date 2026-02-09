@@ -3,118 +3,60 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>New Year Countdown – Ball Drop</title>
-
+  <title>Valentine's Countdown</title>
   <style>
     html, body {
       margin: 0;
       height: 100%;
-      font-family: system-ui, sans-serif;
-      background: radial-gradient(circle at top, #0b1d3a, #000814);
-      color: #e9f5ff;
+      font-family: "Lobster", cursive, system-ui, sans-serif;
+      background: linear-gradient(to bottom, #3a0b1d, #7b1e3c, #d6336c);
+      color: #ffe6ef;
+      text-align: center;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
       overflow: hidden;
     }
-
     h1 {
-      margin-top: 20px;
       font-size: clamp(24px, 5vw, 48px);
-      text-shadow: 0 0 15px #ffd166;
+      margin-bottom: 20px;
+      text-shadow: 0 0 15px #ff9bbd, 0 0 30px #ff6f91;
     }
-
-    #time {
-      font-size: clamp(32px, 8vw, 80px);
-      margin: 10px 0 20px;
-      text-shadow: 0 0 20px #ffd166;
+    #days {
+      font-size: clamp(40px, 12vw, 140px);
+      font-weight: bold;
+      text-shadow: 0 0 20px #ffd6e8, 0 0 35px #ff9bbd;
     }
-
-    /* Tower */
-    #tower {
-      position: relative;
-      width: 120px;
-      height: 60vh;
-      border-left: 4px solid #495057;
-      border-right: 4px solid #495057;
+    p {
       margin-top: 20px;
-      display: flex;
-      justify-content: center;
-    }
-
-    /* Ball */
-    #ball {
-      position: absolute;
-      top: 0;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #fff, #ffd166, #fca311);
-      box-shadow:
-        0 0 25px #ffd166,
-        0 0 50px #fca311,
-        0 0 80px #ffd166;
-      transition: top 0.5s linear;
-    }
-
-    #label {
-      margin-top: 15px;
-      font-size: 18px;
-      opacity: 0.8;
+      font-size: clamp(16px, 4vw, 28px);
+      color: #ffe6ef;
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 </head>
-
 <body>
-  <h1>🎆 New Year’s Eve 🎆</h1>
-  <div id="time">--</div>
-  <div id="tower">
-    <div id="ball"></div>
-  </div>
-  <div id="label">until midnight</div>
+  <h1>❤️ Valentine's Countdown ❤️</h1>
+  <div id="days">--</div>
+  <p id="label">days left</p>
+
+  <p style="margin-top:40px; opacity:0.9;">Nothing to see here, yet…</p>
 
   <script>
-    const ball = document.getElementById("ball");
-    const timeEl = document.getElementById("time");
-    const tower = document.getElementById("tower");
-
-    function getNewYear() {
-      const now = new Date();
-      return new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
-    }
-
     function updateCountdown() {
       const now = new Date();
-      const newYear = getNewYear();
+      const currentYear = now.getFullYear();
+      const valentines = new Date(`${currentYear}-02-14T00:00:00`);
 
-      const totalTime = newYear - new Date(newYear.getFullYear() - 1, 11, 31, 0, 0, 0);
-      const remaining = newYear - now;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const diff = Math.ceil((valentines - now) / oneDay);
 
-      if (remaining <= 0) {
-        timeEl.textContent = "🎉 HAPPY NEW YEAR 🎉";
-        ball.style.top = (tower.clientHeight - ball.clientHeight) + "px";
-        return;
-      }
-
-      // Time display
-      const seconds = Math.floor(remaining / 1000);
-      const hrs = Math.floor(seconds / 3600);
-      const mins = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-
-      timeEl.textContent =
-        hrs > 0
-          ? `${hrs}h ${mins}m ${secs}s`
-          : `${mins}m ${secs}s`;
-
-      // Ball drop calculation
-      const progress = 1 - (remaining / totalTime);
-      const maxDrop = tower.clientHeight - ball.clientHeight;
-      ball.style.top = `${progress * maxDrop}px`;
+      document.getElementById("days").textContent = diff >= 0 ? diff : 0;
     }
 
     updateCountdown();
-    setInterval(updateCountdown, 1000);
+    setInterval(updateCountdown, 1000 * 60 * 60);
   </script>
 </body>
 </html>
