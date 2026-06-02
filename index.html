@@ -1,62 +1,118 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Valentine's Countdown</title>
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      font-family: "Lobster", cursive, system-ui, sans-serif;
-      background: linear-gradient(to bottom, #3a0b1d, #7b1e3c, #d6336c);
-      color: #ffe6ef;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-    h1 {
-      font-size: clamp(24px, 5vw, 48px);
-      margin-bottom: 20px;
-      text-shadow: 0 0 15px #ff9bbd, 0 0 30px #ff6f91;
-    }
-    #days {
-      font-size: clamp(40px, 12vw, 140px);
-      font-weight: bold;
-      text-shadow: 0 0 20px #ffd6e8, 0 0 35px #ff9bbd;
-    }
-    p {
-      margin-top: 20px;
-      font-size: clamp(16px, 4vw, 28px);
-      color: #ffe6ef;
-    }
-  </style>
-  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
-</head>
-<body>
-  <h1>❤️ Valentine's Countdown ❤️</h1>
-  <div id="days">--</div>
-  <p id="label">days left</p>
+<script>
+  // --------------------------
+  // Countdown
+  // --------------------------
+  function updateCountdown() {
+    const now = new Date();
+    const worldCupStart = new Date("2026-06-11T00:00:00");
 
-  <p style="margin-top:40px; opacity:0.9;">Nothing to see here, yet…</p>
+    const oneDay = 1000 * 60 * 60 * 24;
+    const diff = Math.ceil((worldCupStart - now) / oneDay);
 
-  <script>
-    function updateCountdown() {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const valentines = new Date(`${currentYear}-02-14T00:00:00`);
+    document.getElementById("days").textContent =
+      diff > 0 ? diff : 0;
 
-      const oneDay = 1000 * 60 * 60 * 24;
-      const diff = Math.ceil((valentines - now) / oneDay);
+    document.getElementById("label").textContent =
+      diff > 0
+        ? "days left until World Cup 2026"
+        : "World Cup 2026 has started";
+  }
 
-      document.getElementById("days").textContent = diff >= 0 ? diff : 0;
+  updateCountdown();
+  setInterval(updateCountdown, 1000 * 60 * 60);
+
+  // --------------------------
+  // Render Matches
+  // --------------------------
+  function renderMatches(matches) {
+    const tbody = document.getElementById("matches");
+    tbody.innerHTML = "";
+
+    matches.forEach(match => {
+      const home = match.team1 || "TBD";
+      const away = match.team2 || "TBD";
+
+      let result = "TBD";
+
+      if (
+        match.score1 !== undefined &&
+        match.score2 !== undefined
+      ) {
+        result = `${match.score1} - ${match.score2}`;
+      }
+
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td data-label="Date">${match.date}</td>
+        <td data-label="Match">${home} vs ${away}</td>
+        <td data-label="Stage">${match.group || "Stage TBD"}</td>
+        <td data-label="Result" class="result">${result}</td>
+      `;
+
+      tbody.appendChild(row);
+    });
+  }
+
+  // --------------------------
+  // Load World Cup Data
+  // --------------------------
+  async function loadWorldCupData() {
+    try {
+      const response = await fetch(
+        "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2022--qatar/cup.txt"
+      );
+
+      const text = await response.text();
+
+      // crude parser
+      const lines = text.split("\\n");
+
+      const matches = [];
+      let currentDate = "";
+
+      lines.forEach(line => {
+        line = line.trim();
+
+        // date line
+        if (line.match(/^\\d{4}-\\d{2}-\\d{2}/)) {
+          currentDate = line;
+        }
+
+        // match line
+        if (line.includes(" - ")) {
+          const matchRegex =
+            /(.*?)\\s+-\\s+(.*?)\\s+(\\d+):(\\d+)/;
+
+          const found = line.match(matchRegex);
+
+          if (found) {
+            matches.push({
+              date: currentDate,
+              team1: found[1].trim(),
+              team2: found[2].trim(),
+              score1: found[3],
+              score2: found[4],
+              group: "World Cup"
+            });
+          }
+        }
+      });
+
+      renderMatches(matches.slice(0, 20));
+
+    } catch (err) {
+      console.error(err);
+
+      document.getElementById("matches").innerHTML = `
+        <tr>
+          <td colspan="4">
+            Could not load World Cup data
+          </td>
+        </tr>
+      `;
     }
+  }
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000 * 60 * 60);
-  </script>
-</body>
-</html>
+  loadWorldCupData();
+</script>
