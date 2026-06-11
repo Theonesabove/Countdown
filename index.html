@@ -8,56 +8,41 @@
   <style>
     * { box-sizing: border-box; }
 
-    html, body {
+    body {
       margin: 0;
-      min-height: 100%;
+      min-height: 100vh;
       font-family: Arial, Helvetica, sans-serif;
       background: radial-gradient(circle at top, #0f3d7a 0%, #071a3d 45%, #04101f 100%);
       color: white;
-    }
-
-    body {
       padding: 30px 16px 60px;
       text-align: center;
     }
 
     h1 {
-      margin: 0;
       font-size: clamp(32px, 6vw, 70px);
+      margin: 0;
       font-weight: 900;
-      text-shadow: 0 0 10px rgba(255,255,255,.5), 0 0 25px rgba(0,194,255,.6);
     }
 
     #days {
       margin-top: 20px;
       font-size: clamp(70px, 18vw, 180px);
       font-weight: 900;
-      line-height: 1;
       color: #ffd700;
-      text-shadow: 0 0 20px rgba(255,215,0,.8), 0 0 40px rgba(255,215,0,.5);
     }
 
     #label {
-      margin-top: 10px;
       font-size: clamp(18px, 3vw, 32px);
       color: #dbeafe;
     }
 
     .card {
-      width: 100%;
       max-width: 1200px;
       margin: 40px auto 0;
       padding: 24px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 20px;
-      backdrop-filter: blur(10px);
-    }
-
-    h2 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: clamp(24px, 4vw, 40px);
     }
 
     #lastUpdated {
@@ -79,10 +64,10 @@
 
     th {
       padding: 14px;
-      font-size: 14px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
       color: #ffd700;
+      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 1px;
     }
 
     td {
@@ -91,17 +76,13 @@
       font-size: 15px;
     }
 
-    tr:hover {
-      background: rgba(255,255,255,0.04);
-    }
-
-    .result {
+    .score {
       font-weight: bold;
       color: #a7f3d0;
-      font-size: 17px;
+      font-size: 18px;
     }
 
-    .status {
+    .badge {
       display: inline-block;
       padding: 5px 10px;
       border-radius: 999px;
@@ -130,19 +111,15 @@
       color: white;
     }
 
+    .error {
+      color: #ffb4b4;
+      padding: 24px;
+    }
+
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(220,38,38,.8); }
       70% { box-shadow: 0 0 0 10px rgba(220,38,38,0); }
       100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
-    }
-
-    .loading, .error {
-      padding: 30px;
-      font-size: 18px;
-    }
-
-    .error {
-      color: #ffb4b4;
     }
 
     @media (max-width: 850px) {
@@ -157,8 +134,8 @@
       tr {
         margin-bottom: 14px;
         border-radius: 14px;
-        overflow: hidden;
         background: rgba(255,255,255,0.05);
+        overflow: hidden;
       }
 
       td {
@@ -169,8 +146,8 @@
 
       td::before {
         content: attr(data-label) ": ";
-        font-weight: bold;
         color: #ffd700;
+        font-weight: bold;
       }
     }
   </style>
@@ -194,35 +171,43 @@
           <th>Time</th>
           <th>Match</th>
           <th>Stage</th>
-          <th>Result</th>
+          <th>Score</th>
           <th>Status</th>
         </tr>
       </thead>
 
       <tbody id="matches">
         <tr>
-          <td colspan="6" class="loading">Loading matches...</td>
+          <td colspan="6">Loading matches...</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <script>
-    const API_URL = "https://worldcup2026-api.vercel.app/api/matches";
+    const API_URL = "https://worldcup26.ir/get/games";
 
     function updateCountdown() {
       const now = new Date();
-      const worldCupStart = new Date("2026-06-11T00:00:00");
-      const diff = Math.ceil((worldCupStart - now) / (1000 * 60 * 60 * 24));
+      const start = new Date("2026-06-11T00:00:00");
+      const diff = Math.ceil((start - now) / (1000 * 60 * 60 * 24));
 
       document.getElementById("days").textContent = diff > 0 ? diff : 0;
       document.getElementById("label").textContent =
         diff > 0 ? "days left until kickoff" : "The World Cup has started";
     }
 
-    function pick(obj, keys, fallback = "TBD") {
+    function normalizeGames(data) {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data.games)) return data.games;
+      if (Array.isArray(data.data)) return data.data;
+      if (Array.isArray(data.matches)) return data.matches;
+      return [];
+    }
+
+    function getValue(obj, keys, fallback = "TBD") {
       for (const key of keys) {
-        if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
+        if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
           return obj[key];
         }
       }
@@ -232,15 +217,24 @@
     function getTeamName(team) {
       if (!team) return "TBD";
       if (typeof team === "string") return team;
-      return team.name || team.country || team.shortName || "TBD";
+      return team.name || team.country || team.title || team.shortName || "TBD";
     }
 
-    function getMatchDate(match) {
-      const rawDate = pick(match, ["date", "matchDate", "utcDate", "kickoff", "startTime"], "");
-      if (!rawDate) return "TBD";
+    function getHomeTeam(game) {
+      return getTeamName(game.homeTeam || game.home_team || game.team1 || game.home || game.team_a);
+    }
 
-      const parsed = new Date(rawDate);
-      if (isNaN(parsed)) return rawDate;
+    function getAwayTeam(game) {
+      return getTeamName(game.awayTeam || game.away_team || game.team2 || game.away || game.team_b);
+    }
+
+    function getDate(game) {
+      const raw = getValue(game, ["date", "matchDate", "utcDate", "datetime", "kickoff", "startTime"], "");
+
+      if (!raw) return "TBD";
+
+      const parsed = new Date(raw);
+      if (isNaN(parsed)) return raw;
 
       return parsed.toLocaleDateString(undefined, {
         year: "numeric",
@@ -249,15 +243,16 @@
       });
     }
 
-    function getMatchTime(match) {
-      const rawDate = pick(match, ["time", "matchTime", "utcDate", "kickoff", "startTime"], "");
-      if (!rawDate) return "TBD";
+    function getTime(game) {
+      const raw = getValue(game, ["time", "matchTime", "utcDate", "datetime", "kickoff", "startTime"], "");
 
-      if (typeof rawDate === "string" && rawDate.includes(":") && !rawDate.includes("T")) {
-        return rawDate;
+      if (!raw) return "TBD";
+
+      if (typeof raw === "string" && raw.includes(":") && !raw.includes("T")) {
+        return raw;
       }
 
-      const parsed = new Date(rawDate);
+      const parsed = new Date(raw);
       if (isNaN(parsed)) return "TBD";
 
       return parsed.toLocaleTimeString(undefined, {
@@ -266,122 +261,111 @@
       });
     }
 
-    function getScore(match) {
-      const homeScore = pick(match, [
+    function getScore(game) {
+      const homeScore = getValue(game, [
         "homeScore",
         "home_score",
+        "homeGoals",
         "team1Score",
-        "score1",
-        "homeGoals"
+        "score1"
       ], null);
 
-      const awayScore = pick(match, [
+      const awayScore = getValue(game, [
         "awayScore",
         "away_score",
+        "awayGoals",
         "team2Score",
-        "score2",
-        "awayGoals"
+        "score2"
       ], null);
 
       if (homeScore !== null && awayScore !== null) {
         return `${homeScore} - ${awayScore}`;
       }
 
-      if (match.score) {
-        if (typeof match.score === "string") return match.score;
+      if (game.score) {
+        if (typeof game.score === "string") return game.score;
 
-        if (match.score.fullTime) {
-          return `${match.score.fullTime.home ?? 0} - ${match.score.fullTime.away ?? 0}`;
+        if (game.score.fullTime) {
+          return `${game.score.fullTime.home ?? 0} - ${game.score.fullTime.away ?? 0}`;
         }
 
-        if (match.score.ft) {
-          return `${match.score.ft[0]} - ${match.score.ft[1]}`;
+        if (game.score.ft) {
+          return `${game.score.ft[0]} - ${game.score.ft[1]}`;
         }
       }
 
       return "TBD";
     }
 
-    function getStatus(match) {
-      const rawStatus = String(
-        pick(match, ["status", "matchStatus", "state"], "upcoming")
+    function getStage(game) {
+      return getValue(game, ["stage", "round", "group", "phase"], "TBD");
+    }
+
+    function getStatus(game) {
+      const raw = String(
+        getValue(game, ["status", "matchStatus", "state"], "upcoming")
       ).toLowerCase();
 
       if (
-        rawStatus.includes("live") ||
-        rawStatus.includes("in_progress") ||
-        rawStatus.includes("playing") ||
-        rawStatus.includes("first") ||
-        rawStatus.includes("second")
+        raw.includes("live") ||
+        raw.includes("playing") ||
+        raw.includes("progress") ||
+        raw.includes("first") ||
+        raw.includes("second")
       ) {
         return { text: "LIVE", className: "live" };
       }
 
       if (
-        rawStatus.includes("finished") ||
-        rawStatus.includes("full") ||
-        rawStatus.includes("completed") ||
-        rawStatus.includes("ended")
+        raw.includes("finished") ||
+        raw.includes("completed") ||
+        raw.includes("ended") ||
+        raw.includes("full")
       ) {
         return { text: "Finished", className: "finished" };
       }
 
       if (
-        rawStatus.includes("scheduled") ||
-        rawStatus.includes("upcoming") ||
-        rawStatus.includes("not_started")
+        raw.includes("scheduled") ||
+        raw.includes("upcoming") ||
+        raw.includes("not")
       ) {
         return { text: "Upcoming", className: "upcoming" };
       }
 
-      return { text: rawStatus.toUpperCase(), className: "unknown" };
+      return { text: raw.toUpperCase(), className: "unknown" };
     }
 
-    function normalizeMatches(data) {
-      if (Array.isArray(data)) return data;
-      if (Array.isArray(data.matches)) return data.matches;
-      if (Array.isArray(data.data)) return data.data;
-      if (data.response && Array.isArray(data.response)) return data.response;
-      return [];
-    }
-
-    function renderMatches(matches) {
+    function renderGames(games) {
       const tbody = document.getElementById("matches");
       tbody.innerHTML = "";
 
-      if (!matches.length) {
+      if (!games.length) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="error">No matches found from the live API.</td>
+            <td colspan="6" class="error">
+              No matches returned from the API.
+            </td>
           </tr>
         `;
         return;
       }
 
-      matches.forEach(match => {
-        const home =
-          getTeamName(match.homeTeam) ||
-          getTeamName(match.team1) ||
-          pick(match, ["home", "team1", "home_team"], "TBD");
-
-        const away =
-          getTeamName(match.awayTeam) ||
-          getTeamName(match.team2) ||
-          pick(match, ["away", "team2", "away_team"], "TBD");
-
-        const stage = pick(match, ["stage", "round", "group", "phase"], "TBD");
-        const status = getStatus(match);
+      games.forEach(game => {
+        const status = getStatus(game);
 
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td data-label="Date">${getMatchDate(match)}</td>
-          <td data-label="Time">${getMatchTime(match)}</td>
-          <td data-label="Match">${home} vs ${away}</td>
-          <td data-label="Stage">${stage}</td>
-          <td data-label="Result" class="result">${getScore(match)}</td>
+          <td data-label="Date">${getDate(game)}</td>
+          <td data-label="Time">${getTime(game)}</td>
+          <td data-label="Match">${getHomeTeam(game)} vs ${getAwayTeam(game)}</td>
+          <td data-label="Stage">${getStage(game)}</td>
+          <td data-label="Score" class="score">${getScore(game)}</td>
           <td data-label="Status">
-            <span class="status ${status.className}">${status.text}</span>
+            <span class="badge ${status.className}">
+              ${status.text}
+            </span>
           </td>
         `;
 
@@ -389,7 +373,7 @@
       });
     }
 
-    async function loadLiveMatches() {
+    async function loadGames() {
       const tbody = document.getElementById("matches");
       const lastUpdated = document.getElementById("lastUpdated");
 
@@ -397,13 +381,13 @@
         const response = await fetch(API_URL + "?t=" + Date.now());
 
         if (!response.ok) {
-          throw new Error("API request failed");
+          throw new Error("API failed");
         }
 
         const data = await response.json();
-        const matches = normalizeMatches(data);
+        const games = normalizeGames(data);
 
-        renderMatches(matches);
+        renderGames(games);
 
         lastUpdated.textContent =
           "Last updated: " + new Date().toLocaleTimeString();
@@ -414,21 +398,20 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="6" class="error">
-              Could not load live World Cup data.
+              Could not load live World Cup data. The API may be down or blocking browser requests.
             </td>
           </tr>
         `;
 
-        lastUpdated.textContent =
-          "Live data failed to load. Check API/CORS or try again.";
+        lastUpdated.textContent = "Live data failed to load.";
       }
     }
 
     updateCountdown();
-    loadLiveMatches();
+    loadGames();
 
     setInterval(updateCountdown, 1000 * 60 * 60);
-    setInterval(loadLiveMatches, 30000);
+    setInterval(loadGames, 30000);
   </script>
 
 </body>
