@@ -432,7 +432,7 @@
       <input
         type="text"
         id="apiKeyInput"
-        placeholder="7a580ddbbe284b24832f92e1c692d1e5"
+        placeholder="Pega tu key de football-data.org aquí..."
         autocomplete="off"
       />
       <button class="btn" onclick="applyKey()">Cargar partidos</button>
@@ -557,15 +557,32 @@
       tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Cargando partidos...</td></tr>`;
 
       try {
-        const res = await fetch("https://api.football-data.org/v4/competitions/WC/matches?limit=100", {
-          headers: { "X-Auth-Token": apiKey }
-        });
+        // allorigins actúa como proxy CORS — necesario para APIs que solo
+        // permiten localhost (como football-data.org desde GitHub Pages)
+        const targetUrl = encodeURIComponent(
+          `https://api.football-data.org/v4/competitions/WC/matches?limit=100&X-Auth-Token=${apiKey}`
+        );
+        const res = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
 
-        if (res.status === 403) throw new Error("API key inválida o sin permiso para esta competición.");
-        if (res.status === 429) throw new Error("Demasiadas peticiones. Espera un momento.");
         if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
 
-        const data = await res.json();
+        const wrapper = await res.json();
+
+        // allorigins devuelve { contents: "<string>" }
+        let data;
+        try {
+          data = JSON.parse(wrapper.contents);
+        } catch {
+          throw new Error("Respuesta inválida del proxy. Intenta de nuevo.");
+        }
+
+        if (data.errorCode === 403 || data.message?.includes("403"))
+          throw new Error("API key inválida o sin permiso para la competición WC.");
+        if (data.errorCode === 429)
+          throw new Error("Demasiadas peticiones. Espera un momento.");
+        if (data.error)
+          throw new Error(data.message || "Error desconocido de la API.");
+
         allMatches = data.matches || [];
 
         renderMatches();
